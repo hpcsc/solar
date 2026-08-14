@@ -28,7 +28,7 @@ battery size = (daily load to cover × days of cover) ÷ (depth of discharge × 
 - Raw capacity vs usable energy breakdown
 - Interactive energy-flow diagram (day/night, summer/winter)
 - Seasonal "can your panels refill it" check with grid import estimate
-- Collapsible advanced settings (chemistry, efficiency, voltage, panel array)
+- Collapsible advanced settings (battery system presets incl. SolarEdge/Tesla/Enphase/LG/BYD, efficiency, voltage, panel array)
 
 ## Tech
 

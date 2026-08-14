@@ -199,10 +199,11 @@
     <h2>Advanced settings</h2>
 
     <div class="row">
-      <label for="chem">Battery chemistry</label>
-      <select id="chem" x-model="chemistry">
-        <option value="lithium">Lithium (LiFePO₄) — 90% DoD</option>
-        <option value="lead">Lead-acid — 50% DoD</option>
+      <label for="sys">Battery system</label>
+      <select id="sys" x-model="system" @change="effPct = systems[system].eff">
+        <template x-for="(s, key) in systems" :key="key">
+          <option :value="key" x-text="s.label + ' — ' + r(s.doD * 100) + '% DoD, ' + (s.module ? s.module + ' kWh modules' : 'no fixed modules')"></option>
+        </template>
       </select>
     </div>
 
@@ -243,7 +244,8 @@
   <section class="result">
     <div class="big"><span x-text="r(rawKwh)"></span> <small>kWh battery</small></div>
     <p class="hint" style="color:#cfe8d0">
-      <span x-text="mode === 'backup' ? 'Delivers' : 'Stores overnight'"></span>
+      <b x-text="systems[system].label"></b>
+      &nbsp;· <span x-text="mode === 'backup' ? 'Delivers' : 'Stores overnight'"></span>
       <b x-text="r(usableKwh) + ' kWh usable'"></b> after depth-of-discharge and losses.
     </p>
     <div class="result-grid">
@@ -254,6 +256,11 @@
       <div>
         <div class="k">Raw capacity</div>
         <div class="v" x-text="r(rawKwh) + ' kWh'"></div>
+      </div>
+      <div x-show="moduleKwh > 0">
+        <div class="k" x-text="'Modules (' + moduleKwh + ' kWh each)'"></div>
+        <div class="v" x-text="modulesNeeded + ' × ' + moduleKwh + ' kWh'"></div>
+        <div class="k" style="margin-top:2px;opacity:.7" x-text="'installed ' + r(installedKwh) + ' kWh'"></div>
       </div>
       <div>
         <div class="k" x-text="'Size at ' + voltage + ' V'"></div>
@@ -348,7 +355,7 @@
       <g>
         <rect x="30" y="256" width="180" height="70" rx="10" fill="#eaf4ea" stroke="#2f7d32"/>
         <text x="120" y="289" text-anchor="middle" class="svg-box">Battery</text>
-        <text x="120" y="308" text-anchor="middle" class="svg-box"><tspan x-text="r(rawKwh) + ' kWh · ' + (chemistry === 'lithium' ? '90%' : '50%') + ' DoD'"></tspan></text>
+        <text x="120" y="308" text-anchor="middle" class="svg-box"><tspan x-text="r(rawKwh) + ' kWh · ' + r(systems[system].doD * 100) + '% DoD'"></tspan></text>
       </g>
 
       <g>
@@ -443,7 +450,17 @@ function calculator() {
     mode: 'self-consumption',
     autonomy: 1,
     city: 'Sydney',
-    chemistry: 'lithium',
+    system: 'lithium',
+
+    systems: {
+      lithium:   { label: 'Lithium (LiFePO₄)',            doD: 0.9,  eff: 85, module: 0 },
+      lead:      { label: 'Lead-acid',                    doD: 0.5,  eff: 80, module: 0 },
+      solaredge: { label: 'SolarEdge Home Battery',       doD: 0.9,  eff: 90, module: 9.7 },
+      tesla:     { label: 'Tesla Powerwall',              doD: 0.95, eff: 92, module: 13.5 },
+      enphase:   { label: 'Enphase IQ Battery 5P',        doD: 0.96, eff: 90, module: 5.0 },
+      lg:        { label: 'LG RESU Prime',                doD: 0.94, eff: 90, module: 9.8 },
+      byd:       { label: 'BYD Battery-Box Premium',      doD: 0.92, eff: 90, module: 5.12 },
+    },
     effPct: 85,
     voltage: 48,
     arrayKw: 6,
@@ -467,8 +484,13 @@ function calculator() {
     },
 
     get nightFraction() { return this.nightPct / 100; },
-    get doD() { return this.chemistry === 'lithium' ? 0.9 : 0.5; },
+    get doD() { return this.systems[this.system].doD; },
     get efficiency() { return this.effPct / 100; },
+    get moduleKwh() { return this.systems[this.system].module; },
+    get modulesNeeded() {
+      return this.moduleKwh > 0 ? Math.max(1, Math.ceil(this.rawKwh / this.moduleKwh)) : 0;
+    },
+    get installedKwh() { return this.modulesNeeded * this.moduleKwh; },
 
     get loadPerDay() {
       return this.mode === 'backup'
