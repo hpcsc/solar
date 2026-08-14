@@ -265,8 +265,8 @@
   <section class="card">
     <h2>Raw capacity vs usable energy</h2>
     <div class="anat-bar">
-      <div :style="'width:' + usablePct + '%'" style="background:var(--green)"></div>
-      <div :style="'width:' + (100 - usablePct) + '%'" style="background:#d9e0d5"></div>
+      <div :style="'width:' + usablePct + '%;background:var(--green)'"></div>
+      <div :style="'width:' + (100 - usablePct) + '%;background:#d9e0d5'"></div>
     </div>
     <div class="anat-labels">
       <span><span class="dot green"></span>Usable <b x-text="r(usableKwh) + ' kWh'"></b></span>
